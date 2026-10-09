@@ -1,0 +1,309 @@
+@import './tokens.css';
+
+/* ==============================================================================
+   1. RESET & TRANSPARENT DESKTOP APP FOUNDATION
+   ============================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: transparent !important;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure images and canvases render smoothly */
+canvas,
+img {
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ==============================================================================
+   2. INTERACTION & TAURI WINDOW DRAGGING CONTROLS
+   ============================================================================== */
+/* Default for transparent app overlay: pass events through unless marked interactive */
+.passthrough-area {
+  pointer-events: none;
+}
+
+.interactive-area {
+  pointer-events: auto;
+}
+
+/* Tauri native window dragging zones */
+.window-drag-region {
+  -webkit-app-region: drag;
+}
+
+.window-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* ==============================================================================
+   3. GLASSMORPHISM UTILITY CLASSES (High-fidelity Desktop UI)
+   ============================================================================== */
+/* Frosted Glass Container Base */
+.glass-surface {
+  background: var(--glass-bg-base);
+  backdrop-filter: var(--glass-blur-md);
+  -webkit-backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border-base);
+  box-shadow: var(--shadow-glass-md);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  transition: 
+    background var(--duration-normal) var(--ease-smooth),
+    border-color var(--duration-normal) var(--ease-smooth),
+    box-shadow var(--duration-normal) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+/* Subtle Glass Surface for Inner Containers */
+.glass-surface-subtle {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--shadow-glass-sm);
+  border-radius: var(--radius-md);
+}
+
+/* Elevated Glass Surface for Popovers & Modals */
+.glass-surface-elevated {
+  background: var(--glass-bg-elevated);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  border: 1px solid var(--glass-border-highlight);
+  box-shadow: var(--shadow-glass-lg);
+  border-radius: var(--radius-xl);
+}
+
+/* Floating Pill Toolbar Container */
+.glass-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--toolbar-gap);
+  padding: var(--toolbar-padding);
+  background: var(--glass-bg-base);
+  backdrop-filter: var(--glass-blur-md);
+  -webkit-backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border-base);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-glass-md);
+  pointer-events: auto;
+}
+
+/* ==============================================================================
+   4. GLASSMORPHISM BUTTON STYLES (Mute, Pin, Hide, Tools)
+   ============================================================================== */
+.glass-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--btn-size-md);
+  height: var(--btn-size-md);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+  pointer-events: auto;
+  transition: 
+    background var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.glass-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-highlight);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.glass-btn:active {
+  background: var(--glass-bg-active);
+  transform: translateY(0) scale(0.94);
+}
+
+.glass-btn:focus-visible {
+  border-color: var(--glass-border-focus);
+  box-shadow: 0 0 0 2px var(--accent-cyan-glass);
+}
+
+/* Button State Variations */
+/* 1. Mute Activated (Mute nó / Mute mình) */
+.glass-btn.state-muted {
+  background: var(--accent-rose-glass);
+  border-color: rgba(var(--accent-rose-rgb), 0.45);
+  color: var(--accent-rose);
+  box-shadow: var(--accent-rose-glow);
+}
+
+.glass-btn.state-muted:hover {
+  background: rgba(var(--accent-rose-rgb), 0.30);
+  border-color: var(--accent-rose);
+  color: #fff;
+}
+
+/* 2. Always On Top Activated */
+.glass-btn.state-pinned {
+  background: var(--accent-emerald-glass);
+  border-color: rgba(var(--accent-emerald-rgb), 0.45);
+  color: var(--accent-emerald);
+  box-shadow: var(--accent-emerald-glow);
+}
+
+.glass-btn.state-pinned:hover {
+  background: rgba(var(--accent-emerald-rgb), 0.28);
+  border-color: var(--accent-emerald);
+  color: #fff;
+}
+
+/* 3. Cyan Active / Primary Action */
+.glass-btn.state-active {
+  background: var(--accent-cyan-glass);
+  border-color: rgba(var(--accent-cyan-rgb), 0.45);
+  color: var(--accent-cyan);
+  box-shadow: var(--accent-cyan-glow);
+}
+
+/* ==============================================================================
+   5. GLASSMORPHISM SLIDER (Character Scale Slider)
+   ============================================================================== */
+.glass-slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.glass-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: var(--slider-track-height);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+.glass-slider:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Slider Thumb - Webkit (Chrome / Safari / Tauri macOS / WebView2 Windows) */
+.glass-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  border-radius: var(--radius-full);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+  transition: transform var(--duration-fast) var(--ease-spring), box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.glass-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.22);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.glass-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+/* Slider Thumb - Firefox */
+.glass-slider::-moz-range-thumb {
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  border-radius: var(--radius-full);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+/* ==============================================================================
+   6. MICRO-ANIMATIONS & TRANSITION HELPERS
+   ============================================================================== */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(0.97);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s infinite var(--ease-smooth);
+}
+
+/* Smooth UI Hide / Reveal Transition */
+.ui-transition-fade {
+  transition: 
+    opacity var(--duration-normal) var(--ease-smooth),
+    transform var(--duration-normal) var(--ease-spring),
+    visibility var(--duration-normal);
+}
+
+.ui-hidden {
+  opacity: 0 !important;
+  transform: scale(0.95) translateY(4px) !important;
+  pointer-events: none !important;
+  visibility: hidden;
+}
+
+.ui-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+  visibility: visible;
+}
+
+/* ==============================================================================
+   7. ACCESSIBILITY - REDUCED MOTION
+   ============================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
