@@ -1,0 +1,39 @@
+# Logs & Internal Diary (Theo agent.md mục 4.2)
+*.log
+activity.log
+error.log
+
+# Environment variables & Local secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Node dependencies & Build outputs
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Tauri build outputs
+src-tauri/target/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# IDE & Editor files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
