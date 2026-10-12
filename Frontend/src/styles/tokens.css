@@ -1,0 +1,138 @@
+/**
+ * Desktop AI Companion - Design System Tokens
+ * Target: Modern Glassmorphism (macOS Vibrancy & Windows Fluent Acrylic)
+ * Version: 1.0.0
+ */
+
+:root {
+  /* ==========================================================================
+     1. COLOR PALETTE & SURFACES (Dark Glass Theme)
+     ========================================================================== */
+  /* Surfaces & Glass Backgrounds */
+  --glass-bg-base: rgba(18, 20, 28, 0.72);
+  --glass-bg-subtle: rgba(26, 30, 42, 0.50);
+  --glass-bg-elevated: rgba(32, 38, 54, 0.85);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  --glass-bg-active: rgba(255, 255, 255, 0.14);
+
+  /* Specular Highlights & Borders */
+  --glass-border-subtle: rgba(255, 255, 255, 0.08);
+  --glass-border-base: rgba(255, 255, 255, 0.14);
+  --glass-border-highlight: rgba(255, 255, 255, 0.28);
+  --glass-border-focus: rgba(56, 189, 248, 0.65);
+
+  /* Typography Colors */
+  --text-primary: rgba(255, 255, 255, 0.96);
+  --text-secondary: rgba(226, 232, 240, 0.75);
+  --text-muted: rgba(148, 163, 184, 0.50);
+  --text-disabled: rgba(100, 116, 139, 0.35);
+
+  /* Status & Functional Accents */
+  /* Active / Thinking / Default Accent (Sky Blue) */
+  --accent-cyan: #38bdf8;
+  --accent-cyan-rgb: 56, 189, 248;
+  --accent-cyan-glass: rgba(56, 189, 248, 0.18);
+  --accent-cyan-glow: 0 0 16px rgba(56, 189, 248, 0.35);
+
+  /* Muted / Alert State (Rose Red) */
+  --accent-rose: #f43f5e;
+  --accent-rose-rgb: 244, 63, 94;
+  --accent-rose-glass: rgba(244, 63, 94, 0.20);
+  --accent-rose-glow: 0 0 16px rgba(244, 63, 94, 0.40);
+
+  /* Always-on-top / Ready / Success State (Emerald Green) */
+  --accent-emerald: #10b981;
+  --accent-emerald-rgb: 16, 185, 129;
+  --accent-emerald-glass: rgba(16, 185, 129, 0.18);
+  --accent-emerald-glow: 0 0 16px rgba(16, 185, 129, 0.35);
+
+  /* Listening / Warning State (Warm Amber) */
+  --accent-amber: #f59e0b;
+  --accent-amber-rgb: 245, 158, 11;
+  --accent-amber-glass: rgba(245, 158, 11, 0.18);
+  --accent-amber-glow: 0 0 16px rgba(245, 158, 11, 0.35);
+
+  /* Speaking / Creative State (Iris Purple) */
+  --accent-purple: #a855f7;
+  --accent-purple-rgb: 168, 85, 247;
+  --accent-purple-glass: rgba(168, 85, 247, 0.18);
+  --accent-purple-glow: 0 0 16px rgba(168, 85, 247, 0.35);
+
+  /* ==========================================================================
+     2. GLASS EFFECTS & SHADOWS (Layered Depth)
+     ========================================================================== */
+  /* Blur & Saturation Filter Presets */
+  --glass-blur-sm: blur(12px) saturate(180%);
+  --glass-blur-md: blur(24px) saturate(190%);
+  --glass-blur-lg: blur(40px) saturate(200%);
+
+  /* Layered Shadows (Realistic Ambient Depth) */
+  --shadow-glass-sm: 
+    0 4px 12px -2px rgba(0, 0, 0, 0.35),
+    0 2px 6px -1px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  --shadow-glass-md: 
+    0 10px 25px -4px rgba(0, 0, 0, 0.45),
+    0 4px 10px -2px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+
+  --shadow-glass-lg: 
+    0 20px 40px -8px rgba(0, 0, 0, 0.60),
+    0 8px 16px -4px rgba(0, 0, 0, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.20);
+
+  /* ==========================================================================
+     3. GEOMETRY, RADII & SIZING
+     ========================================================================== */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Button Dimensions */
+  --btn-size-sm: 30px;
+  --btn-size-md: 38px;
+  --btn-size-lg: 46px;
+
+  /* Floating Toolbar Dimensions */
+  --toolbar-gap: 8px;
+  --toolbar-padding: 6px 10px;
+
+  /* Custom Slider Metrics */
+  --slider-track-height: 5px;
+  --slider-thumb-size: 16px;
+
+  /* ==========================================================================
+     4. TIMINGS & SPRING EASING
+     ========================================================================== */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* ==========================================================================
+     5. Z-INDEX SYSTEM
+     ========================================================================== */
+  --z-avatar: 10;
+  --z-overlay: 20;
+  --z-chat: 30;
+  --z-toolbar: 40;
+  --z-modal: 50;
+  --z-tooltip: 60;
+
+  /* ==========================================================================
+     6. TYPOGRAPHY SYSTEM
+     ========================================================================== */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+}
