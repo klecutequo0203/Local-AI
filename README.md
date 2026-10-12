@@ -85,7 +85,7 @@ Frontend/
 │   │   │   └── TypingIndicator.tsx    # Hiệu ứng ba chấm động khi AI đang suy nghĩ
 │   │   │
 │   │   ├── audio/
-│   │   │   ├── AudioVisualizer.tsx    # Sóng âm Canvas Web Audio API hiệu năng cao
+│   │   │   ├── AudioVisualizer.tsx    # Sóng âm Canvas Web Audio API hiệu nâng cao
 │   │   │   ├── MicrophoneButton.tsx   # Nút bật/tắt mic độc lập
 │   │   │   ├── TtsMuteButton.tsx      # Nút bật/tắt tiếng AI độc lập
 │   │   │   └── PlaybackControls.tsx   # Cụm điều khiển âm thanh và nút dừng AI nói
@@ -156,7 +156,7 @@ Frontend/
 Frontend hỗ trợ chế độ **Mock Gateway** hoàn chỉnh, cho phép thiết kế toàn bộ UI, chatbox, mic và emotion mà **không cần khởi động backend**:
 
 ```bash
-# 1. Di chuyển vào thư mục Frontend
+# 1. Di chuyển vào thư mục Frontend (hoặc đứng ở thư mục gốc)
 cd Frontend
 
 # 2. Cài đặt các gói thư viện
@@ -166,10 +166,12 @@ npm install
 cp .env.example .env
 # Mặc định: VITE_BACKEND_MODE=mock
 
-# 4. Khởi chạy máy chủ phát triển Vite
-npm run dev
+# 4. Nạp môi trường Rust (bắt buộc trên macOS nếu chưa có trong PATH)
+source "$HOME/.cargo/env"
+
+# 5. Khởi chạy Ứng dụng Desktop (Tauri)
+npm run tauri dev
 ```
-> Truy cập trình duyệt theo liên kết hiển thị: `http://localhost:5173` để duyệt giao diện.
 
 ### 4.3. Kết nối với Backend thật (WebSocket Mode)
 Khi máy chủ Windows hoàn thành khởi chạy LLM Orchestrator:
@@ -179,18 +181,21 @@ Khi máy chủ Windows hoàn thành khởi chạy LLM Orchestrator:
    VITE_BACKEND_MODE=websocket
    VITE_BACKEND_WS_URL=ws://<IP_MAY_WINDOWS>:8765/ws
    ```
-3. Khởi chạy lại `npm run dev` (không cần sửa đổi bất kỳ component React nào).
+3. Khởi chạy lại dự án (không cần sửa đổi bất kỳ component React nào).
 
 ---
 
 ## 5. KỊCH BẢN LỆNH (SCRIPTS & TESTING)
+
+> *Mẹo*: Bạn có thể chạy các lệnh này từ thư mục gốc của dự án hoặc trong thư mục `Frontend/`.
 
 | Lệnh | Ý nghĩa | Chi tiết sử dụng |
 | :--- | :--- | :--- |
 | `npm run dev` | Bật Vite Dev Server | Chạy giao diện với Hot Module Replacement (HMR) cực nhanh. |
 | `npm run build` | Đóng gói sản phẩm | Kiểm tra kiểu dữ liệu TypeScript (`tsc`) và build bản phát hành ra thư mục `dist/`. |
 | `npm run preview` | Duyệt thử bản build | Kiểm tra bản build tĩnh trên môi trường máy chủ cục bộ. |
-| `npm run tauri dev` | Khởi chạy native Tauri | Mở cửa sổ native (macOS/Windows) với tính năng nền trong suốt, click-through và System Tray. |
+| `npm run tauri dev` | Khởi chạy native Tauri | Mở cửa sổ native (macOS/Windows) với tính năng nền trong suốt. *(Lưu ý: Chạy `source "$HOME/.cargo/env"` trước khi chạy lệnh này)* |
+
 
 ---
 

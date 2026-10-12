@@ -11,6 +11,10 @@
   padding: 0;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 html,
 body,
 #root {
@@ -26,6 +30,8 @@ body,
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
+  /* Làm mịn viền chữ trên Windows ClearType */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -71,7 +77,7 @@ img {
   box-shadow: var(--shadow-glass-md);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
-  transition: 
+  transition:
     background var(--duration-normal) var(--ease-smooth),
     border-color var(--duration-normal) var(--ease-smooth),
     box-shadow var(--duration-normal) var(--ease-smooth),
@@ -113,6 +119,25 @@ img {
   pointer-events: auto;
 }
 
+/* Drag Handle Grip */
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  cursor: grab;
+  transition: opacity var(--duration-fast) var(--ease-smooth), color var(--duration-fast) var(--ease-smooth);
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  color: var(--accent-cyan) !important;
+}
+
+.drag-handle:active {
+  cursor: grabbing !important;
+}
+
 /* ==============================================================================
    4. GLASSMORPHISM BUTTON STYLES (Mute, Pin, Hide, Tools)
    ============================================================================== */
@@ -130,7 +155,7 @@ img {
   cursor: pointer;
   outline: none;
   pointer-events: auto;
-  transition: 
+  transition:
     background var(--duration-fast) var(--ease-smooth),
     border-color var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
@@ -211,11 +236,11 @@ img {
   background: rgba(255, 255, 255, 0.16);
   outline: none;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-smooth);
+  transition: none !important;
 }
 
 .glass-slider:hover {
-  background: rgba(255, 255, 255, 0.25);
+  filter: brightness(1.15);
 }
 
 /* Slider Thumb - Webkit (Chrome / Safari / Tauri macOS / WebView2 Windows) */
@@ -258,10 +283,13 @@ img {
    6. MICRO-ANIMATIONS & TRANSITION HELPERS
    ============================================================================== */
 @keyframes pulse-subtle {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.85;
     transform: scale(0.97);
@@ -274,7 +302,7 @@ img {
 
 /* Smooth UI Hide / Reveal Transition */
 .ui-transition-fade {
-  transition: 
+  transition:
     opacity var(--duration-normal) var(--ease-smooth),
     transform var(--duration-normal) var(--ease-spring),
     visibility var(--duration-normal);
@@ -298,6 +326,7 @@ img {
    7. ACCESSIBILITY - REDUCED MOTION
    ============================================================================== */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

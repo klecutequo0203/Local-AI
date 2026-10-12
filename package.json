@@ -1,0 +1,10 @@
+{
+  "name": "desktop-ai-companion",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix Frontend run dev",
+    "build": "npm --prefix Frontend run build",
+    "preview": "npm --prefix Frontend run preview",
+    "tauri": "npm --prefix Frontend run tauri --"
+  }
+}
