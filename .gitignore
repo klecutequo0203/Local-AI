@@ -1,7 +1,8 @@
-# Logs & Internal Diary (Theo agent.md mục 4.2)
+# Logs & Internal Diary
 *.log
 activity.log
 error.log
+agent.md
 
 # Environment variables & Local secrets
 .env
