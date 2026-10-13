@@ -15,11 +15,14 @@ import {
   ZoomIn,
   MousePointerClick,
   GripVertical,
+  MessageSquare,
 } from 'lucide-react';
 import { IconButton } from '../components/ui/IconButton';
 import { Slider } from '../components/ui/Slider';
 import { Tooltip } from '../components/ui/Tooltip';
 import { Titlebar } from '../components/ui/Titlebar';
+import { ChatPanel } from '../components/chat/ChatPanel';
+import { ChatMessage } from '../types/chat';
 
 export const App: React.FC = () => {
   const [isAiMuted, setIsAiMuted] = useState(false);
@@ -31,6 +34,43 @@ export const App: React.FC = () => {
   const [characterScale, setCharacterScale] = useState(1.0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Chatbox State
+  const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isThinking, setIsThinking] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'welcome_1',
+      role: 'assistant',
+      text: 'Chào bạn! Mình là Desktop AI Companion. Bạn cần mình hỗ trợ gì hôm nay?',
+      timestamp: new Date().toISOString(),
+      emotion: 'happy',
+    },
+  ]);
+
+  const handleSendMessage = useCallback((text: string) => {
+    const userMsg: ChatMessage = {
+      id: `user_${Date.now()}`,
+      role: 'user',
+      text,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setIsThinking(true);
+
+    // Giả lập câu trả lời nhanh từ AI (trước khi nối Mock/WebSocket Gateway đầy đủ)
+    setTimeout(() => {
+      const aiReply: ChatMessage = {
+        id: `ai_${Date.now()}`,
+        role: 'assistant',
+        text: `Mình đã nhận được tin nhắn: "${text}". Khung chat đang hoạt động mượt mà!`,
+        timestamp: new Date().toISOString(),
+        emotion: 'curious',
+      };
+      setMessages((prev) => [...prev, aiReply]);
+      setIsThinking(false);
+    }, 1200);
+  }, []);
+
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -40,6 +80,11 @@ export const App: React.FC = () => {
       setToastMessage(null);
     }, 2500);
   }, []);
+
+  const handleClearMessages = useCallback(() => {
+    setMessages([]);
+    showToast('🧹 Đã xoá lịch sử trò chuyện');
+  }, [showToast]);
 
   // Xử lý kéo thả tự do cửa sổ trên màn hình
   const handleStartDrag = useCallback(async (e: React.MouseEvent) => {
@@ -392,7 +437,17 @@ export const App: React.FC = () => {
             }}
           />
 
-          {/* 6. Nút ẩn UI */}
+          {/* 6. Bật/Tắt Chatbox */}
+          <Tooltip content={isChatOpen ? 'Đóng khung chat' : 'Mở khung chat'} position="top">
+            <IconButton
+              icon={<MessageSquare size={17} />}
+              label="Chatbox"
+              activeState={isChatOpen ? 'active' : 'default'}
+              onClick={() => setIsChatOpen((prev) => !prev)}
+            />
+          </Tooltip>
+
+          {/* 7. Nút ẩn UI */}
           <Tooltip content="Ẩn toàn bộ UI" position="top">
             <IconButton
               icon={<EyeOff size={17} />}
@@ -401,6 +456,17 @@ export const App: React.FC = () => {
             />
           </Tooltip>
         </div>
+
+        {/* Floating Frameless Chatbox */}
+        {isChatOpen && (
+          <ChatPanel
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            onClearMessages={handleClearMessages}
+            onClose={() => setIsChatOpen(false)}
+            isThinking={isThinking}
+          />
+        )}
 
         {/* Status Preview Card */}
         <div
