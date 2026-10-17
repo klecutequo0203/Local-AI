@@ -29,12 +29,8 @@ ehthumbs.db
 Thumbs.db
 [Dd]esktop.ini
 
-# IDE & Editor files
-.vscode/*
-!.vscode/extensions.json
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Local Agent harness & skills
+.agents/
+.github/agents/
+.github/hooks/
+.github/skills/

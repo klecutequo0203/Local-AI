@@ -159,11 +159,10 @@
 }
 
 .bubble-user {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(30, 64, 175, 0.35));
+  background: rgba(56, 189, 248, 0.20);
   border: 1px solid rgba(56, 189, 248, 0.35);
   color: var(--text-primary);
   border-radius: 14px 14px 3px 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .bubble-assistant {
@@ -171,7 +170,6 @@
   border: 1px solid var(--glass-border-base);
   color: var(--text-primary);
   border-radius: 14px 14px 14px 3px;
-  box-shadow: var(--shadow-glass-sm);
 }
 
 /* Emotion Tag */
@@ -219,23 +217,23 @@
   width: 5px;
   height: 5px;
   border-radius: var(--radius-full);
-  background: var(--accent-cyan);
-  opacity: 0.4;
-  animation: chatDotBounce 1.4s infinite ease-in-out both;
+  background: var(--text-secondary);
+  opacity: 0.3;
+  animation: chatDotPulse 1.4s infinite cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .chat-dot:nth-child(1) { animation-delay: -0.32s; }
 .chat-dot:nth-child(2) { animation-delay: -0.16s; }
 .chat-dot:nth-child(3) { animation-delay: 0s; }
 
-@keyframes chatDotBounce {
-  0%, 80%, 100% {
-    transform: scale(0.6);
+@keyframes chatDotPulse {
+  0%, 100% {
     opacity: 0.3;
+    transform: scale(0.85);
   }
-  40% {
-    transform: scale(1.1);
-    opacity: 1;
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
   }
 }
 
@@ -309,3 +307,82 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   Message enter animation — new bubbles slide up and fade in
+   ========================================================================== */
+@keyframes msg-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chat-message-row {
+  animation: msg-enter 220ms var(--ease-spring) both;
+}
+
+/* ==========================================================================
+   Scroll-to-bottom button — appears when user scrolls up
+   ========================================================================== */
+.chat-scroll-to-bottom {
+  position: absolute;
+  bottom: 60px; /* just above the input bar */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px 5px 10px;
+  background: var(--glass-bg-elevated);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: var(--radius-full);
+  color: var(--accent-cyan);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), var(--accent-cyan-glow);
+  pointer-events: auto;
+  white-space: nowrap;
+  transition:
+    opacity var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-spring);
+  animation: toast-in var(--duration-normal) var(--ease-spring) both;
+  z-index: 10;
+}
+
+.chat-scroll-to-bottom:hover {
+  background: rgba(56, 189, 248, 0.18);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.chat-scroll-to-bottom:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* The unread count badge */
+.chat-scroll-badge {
+  background: var(--accent-cyan);
+  color: #0b1120;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  padding: 1px 6px;
+  line-height: 16px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* The message list wrapper needs position: relative for the button anchor */
+.chat-message-list-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0; /* essential: lets flex child scroll properly */
+  display: flex;
+  flex-direction: column;
+}
+

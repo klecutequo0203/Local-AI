@@ -166,12 +166,17 @@ npm install
 cp .env.example .env
 # Mặc định: VITE_BACKEND_MODE=mock
 
-# 4. Nạp môi trường Rust (bắt buộc trên macOS nếu chưa có trong PATH)
+# 4. Nạp môi trường Rust (trên macOS nếu chưa có trong PATH)
 source "$HOME/.cargo/env"
 
 # 5. Khởi chạy Ứng dụng Desktop (Tauri)
-npm run tauri dev
+# Trên macOS hoặc Windows (chạy mượt trên cả 2 hệ điều hành):
+npm run tauri:dev
 ```
+
+> **LƯU Ý DÀNH CHO MÁY WINDOWS (PowerShell / CMD)**:
+> - Sử dụng lệnh **`npm run tauri:dev`** để chạy trực tiếp ứng dụng desktop mà không lo bị nuốt tham số CLI.
+> - Đảm bảo đã cài đặt Visual Studio C++ Build Tools và Rust toolchain (`rustup default stable`).
 
 ### 4.3. Kết nối với Backend thật (WebSocket Mode)
 Khi máy chủ Windows hoàn thành khởi chạy LLM Orchestrator:
@@ -191,10 +196,11 @@ Khi máy chủ Windows hoàn thành khởi chạy LLM Orchestrator:
 
 | Lệnh | Ý nghĩa | Chi tiết sử dụng |
 | :--- | :--- | :--- |
-| `npm run dev` | Bật Vite Dev Server | Chạy giao diện với Hot Module Replacement (HMR) cực nhanh. |
+| `npm run dev` | Bật Vite Dev Server | Chạy giao diện trên trình duyệt với Hot Module Replacement (HMR). |
 | `npm run build` | Đóng gói sản phẩm | Kiểm tra kiểu dữ liệu TypeScript (`tsc`) và build bản phát hành ra thư mục `dist/`. |
 | `npm run preview` | Duyệt thử bản build | Kiểm tra bản build tĩnh trên môi trường máy chủ cục bộ. |
-| `npm run tauri dev` | Khởi chạy native Tauri | Mở cửa sổ native (macOS/Windows) với tính năng nền trong suốt. *(Lưu ý: Chạy `source "$HOME/.cargo/env"` trước khi chạy lệnh này)* |
+| `npm run tauri:dev` | **Khởi chạy Native Desktop (Khuyên dùng)** | Mở cửa sổ native trong suốt (macOS & Windows). Chạy chuẩn xác trên cả PowerShell Windows và macOS Terminal. |
+| `npm run tauri dev` | Khởi chạy native Tauri | Tương đương `npm run tauri:dev`. |
 
 
 ---

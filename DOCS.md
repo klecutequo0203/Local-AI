@@ -314,3 +314,14 @@ File nguồn: `Frontend/src/components/ui/Slider.tsx`
 | **Phóng to / Khôi phục (Maximize/Restore)** | `Cmd + Ctrl + F` | `F11` / `Alt + Enter` / `Alt + X` |
 | **Kéo di chuyển cửa sổ tự do** | Nhấp giữ chuột vào Grip Toolbar / Titlebar / Status Card | Nhấp giữ chuột vào Grip Toolbar / Titlebar / Status Card |
 | **Phóng to/Thu nhỏ nhanh** | Double-click vùng Titlebar | Double-click vùng Titlebar |
+
+---
+
+## 🚀 8. HƯỚNG DẪN KHỞI CHẠY (SCRIPTS & CROSS-PLATFORM LAUNCH)
+
+| Lệnh thực thi | Mục đích | Lưu ý hệ điều hành |
+| :--- | :--- | :--- |
+| `npm run tauri:dev` | **Khởi chạy ứng dụng Desktop (Khuyên dùng)** | **Khuyên dùng cho cả Windows & macOS**. Trên Windows PowerShell, lệnh này đảm bảo CLI nhận diện chính xác cờ `dev` mà không cần thêm `--`. |
+| `npm run dev` | Khởi chạy Vite web server | Phục vụ kiểm thử giao diện trên trình duyệt (localhost:5174). |
+| `npm run build` | Kiểm tra kiểu TypeScript & đóng gói | Chạy `tsc && vite build` kiểm tra toàn bộ lỗi biên dịch trước khi push. |
+

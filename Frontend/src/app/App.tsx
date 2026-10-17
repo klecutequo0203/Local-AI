@@ -22,9 +22,11 @@ import { Slider } from '../components/ui/Slider';
 import { Tooltip } from '../components/ui/Tooltip';
 import { Titlebar } from '../components/ui/Titlebar';
 import { ChatPanel } from '../components/chat/ChatPanel';
-import { ChatMessage } from '../types/chat';
+import { useMockChat } from '../hooks/useMockChat';
+import '../styles/globals.css';
 
 export const App: React.FC = () => {
+  // ── Controls state ─────────────────────────────────────────────────────────
   const [isAiMuted, setIsAiMuted] = useState(false);
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isAlwaysOnTop, setIsAlwaysOnTop] = useState(false);
@@ -32,65 +34,29 @@ export const App: React.FC = () => {
   const [isForceClickThrough, setIsForceClickThrough] = useState(false);
   const [isUiHidden, setIsUiHidden] = useState(false);
   const [characterScale, setCharacterScale] = useState(1.0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Chatbox State
   const [isChatOpen, setIsChatOpen] = useState(true);
-  const [isThinking, setIsThinking] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome_1',
-      role: 'assistant',
-      text: 'Chào bạn! Mình là Desktop AI Companion. Bạn cần mình hỗ trợ gì hôm nay?',
-      timestamp: new Date().toISOString(),
-      emotion: 'happy',
-    },
-  ]);
 
-  const handleSendMessage = useCallback((text: string) => {
-    const userMsg: ChatMessage = {
-      id: `user_${Date.now()}`,
-      role: 'user',
-      text,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsThinking(true);
-
-    // Giả lập câu trả lời nhanh từ AI (trước khi nối Mock/WebSocket Gateway đầy đủ)
-    setTimeout(() => {
-      const aiReply: ChatMessage = {
-        id: `ai_${Date.now()}`,
-        role: 'assistant',
-        text: `Mình đã nhận được tin nhắn: "${text}". Khung chat đang hoạt động mượt mà!`,
-        timestamp: new Date().toISOString(),
-        emotion: 'curious',
-      };
-      setMessages((prev) => [...prev, aiReply]);
-      setIsThinking(false);
-    }, 1200);
-  }, []);
-
+  // ── Toast ───────────────────────────────────────────────────────────────────
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((msg: string) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
-    toastTimerRef.current = setTimeout(() => {
-      setToastMessage(null);
-    }, 2500);
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 2500);
   }, []);
 
-  const handleClearMessages = useCallback(() => {
-    setMessages([]);
-    showToast('🧹 Đã xoá lịch sử trò chuyện');
-  }, [showToast]);
+  // ── Chat (mock gateway) ─────────────────────────────────────────────────────
+  const { messages, isThinking, sendMessage, clearMessages } = useMockChat();
 
-  // Xử lý kéo thả tự do cửa sổ trên màn hình
+  const handleClearMessages = useCallback(() => {
+    clearMessages();
+    showToast('Đã xoá lịch sử trò chuyện');
+  }, [clearMessages, showToast]);
+
+  // ── Window dragging ─────────────────────────────────────────────────────────
   const handleStartDrag = useCallback(async (e: React.MouseEvent) => {
-    // Chỉ kích hoạt khi nhấn chuột trái
     if (e.button !== 0) return;
-    // Bỏ qua nếu nhấn vào các nút bấm hoặc slider
     if ((e.target as HTMLElement).closest('.window-no-drag')) return;
 
     try {
@@ -99,28 +65,26 @@ export const App: React.FC = () => {
     } catch (err) {
       console.warn('[Window] startDragging failed:', err);
     } finally {
-      await invoke('set_is_dragging', { dragging: false }).catch(() => {});
+      invoke('set_is_dragging', { dragging: false }).catch(() => {});
     }
   }, []);
 
-  // 1. Quét và đồng bộ các vùng tương tác (Titlebar, Toolbar, Controls) xuống luồng Native Rust
+  // ── Smart hit-rect sync ─────────────────────────────────────────────────────
   const syncHitRects = useCallback(() => {
-    try {
-      const targets = document.querySelectorAll('.interactive-hit-target');
-      const rects: Array<{ x: number; y: number; width: number; height: number }> = [];
-      targets.forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) {
-          rects.push({
-            x: Math.round(r.left),
-            y: Math.round(r.top),
-            width: Math.round(r.width),
-            height: Math.round(r.height),
-          });
-        }
-      });
-      invoke('update_hit_rects', { rects }).catch(() => {});
-    } catch {}
+    const targets = document.querySelectorAll('.interactive-hit-target');
+    const rects: Array<{ x: number; y: number; width: number; height: number }> = [];
+    targets.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        rects.push({
+          x: Math.round(r.left),
+          y: Math.round(r.top),
+          width: Math.round(r.width),
+          height: Math.round(r.height),
+        });
+      }
+    });
+    invoke('update_hit_rects', { rects }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -133,182 +97,108 @@ export const App: React.FC = () => {
     };
   }, [syncHitRects]);
 
+  // Re-sync when visibility changes (toolbar hide/show, chat open/close)
   useEffect(() => {
     const timer = setTimeout(syncHitRects, 80);
     return () => clearTimeout(timer);
-  }, [isUiHidden, syncHitRects]);
+  }, [isUiHidden, isChatOpen, syncHitRects]);
 
-  // 2. Đồng bộ trạng thái ban đầu của AlwaysOnTop
+  // ── Sync initial always-on-top state from window ────────────────────────────
   useEffect(() => {
-    try {
-      getCurrentWindow()
-        .isAlwaysOnTop()
-        .then((val) => setIsAlwaysOnTop(val))
-        .catch(() => {});
-    } catch {}
+    getCurrentWindow()
+      .isAlwaysOnTop()
+      .then((val) => setIsAlwaysOnTop(val))
+      .catch(() => {});
   }, []);
 
-  // 3. Chức năng Always on Top
+  // ── Always on Top ───────────────────────────────────────────────────────────
   const handleToggleAlwaysOnTop = useCallback(async () => {
+    const next = !isAlwaysOnTop;
     try {
-      const next = !isAlwaysOnTop;
       await getCurrentWindow().setAlwaysOnTop(next);
-      setIsAlwaysOnTop(next);
-      showToast(next ? '📌 Always on Top: ĐÃ BẬT' : '📌 Always on Top: ĐÃ TẮT');
-    } catch (err) {
-      console.warn('[Window] setAlwaysOnTop failed:', err);
-      setIsAlwaysOnTop((prev) => !prev);
+    } catch {
+      // Native call may fail in browser dev mode — still update UI
     }
+    setIsAlwaysOnTop(next);
+    showToast(next ? 'Always on Top: Bật' : 'Always on Top: Tắt');
   }, [isAlwaysOnTop, showToast]);
 
-  // 4. Chức năng Smart Hit-Testing (Tự xuyên vùng trống, tự bắt chuột ở thanh công cụ)
+  // ── Smart Hit-Testing toggle ────────────────────────────────────────────────
   const handleToggleSmartHitTest = useCallback(async () => {
-    try {
-      const next = !isSmartHitTest;
-      await invoke('set_smart_hit_test', { enabled: next });
-      setIsSmartHitTest(next);
-      showToast(
-        next
-          ? '🎯 Smart Hit-Testing: BẬT (Tự click xuyên vùng trống)'
-          : '🛡️ Bắt chuột toàn cửa sổ: BẬT (Tắt xuyên chuột)'
-      );
-    } catch (err) {
-      console.warn('[HitTest] set_smart_hit_test failed:', err);
-      setIsSmartHitTest((prev) => !prev);
-    }
+    const next = !isSmartHitTest;
+    invoke('set_smart_hit_test', { enabled: next }).catch(() => {});
+    setIsSmartHitTest(next);
+    showToast(
+      next
+        ? 'Smart Hit-Testing: Bật (Tự xuyên vùng trống)'
+        : 'Bắt chuột toàn cửa sổ (Tắt xuyên chuột)'
+    );
   }, [isSmartHitTest, showToast]);
 
-  const isMac = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('mac');
+  // ── Force Click-through ─────────────────────────────────────────────────────
+  const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent);
   const shortcutLabel = isMac ? '⌘⌥C' : 'Ctrl+Alt+C';
 
-  // 5. Chức năng Force Click-through (Khóa xuyên chuột 100% bằng phím tắt toàn cục)
   const handleToggleForceClickThrough = useCallback(async () => {
-    try {
-      const next = !isForceClickThrough;
-      await invoke('set_force_click_through', { force: next });
-      setIsForceClickThrough(next);
-      showToast(
-        next
-          ? `⚡ Khóa Click-through: 100% XUYÊN CHUỘT (Bấm ${shortcutLabel} để mở lại)`
-          : '🎯 Đã mở lại Smart Hit-Testing bình thường'
-      );
-    } catch (err) {
-      console.warn('[HitTest] set_force_click_through failed:', err);
-      setIsForceClickThrough((prev) => !prev);
-    }
+    const next = !isForceClickThrough;
+    invoke('set_force_click_through', { force: next }).catch(() => {});
+    setIsForceClickThrough(next);
+    showToast(
+      next
+        ? `Khóa Click-through 100% (Bấm ${shortcutLabel} để mở lại)`
+        : 'Đã khôi phục Smart Hit-Testing'
+    );
   }, [isForceClickThrough, showToast, shortcutLabel]);
 
-  // 6. Lắng nghe phím tắt toàn cục: CommandOrControl + Alt + C
+  // ── Global shortcut: CommandOrControl + Alt + C ─────────────────────────────
   useEffect(() => {
-    let active = true;
-    const registerShortcut = async () => {
-      try {
-        await register('CommandOrControl+Alt+C', (event) => {
-          if (event.state === 'Pressed' && active) {
-            handleToggleForceClickThrough();
-          }
-        });
-      } catch (err) {
-        console.warn('[Shortcut] Failed to register CommandOrControl+Alt+C:', err);
+    let cancelled = false;
+
+    register('CommandOrControl+Alt+C', (event) => {
+      if (event.state === 'Pressed' && !cancelled) {
+        handleToggleForceClickThrough();
       }
-    };
-    registerShortcut();
+    }).catch((err) => console.warn('[Shortcut] Registration failed:', err));
 
     return () => {
-      active = false;
-      try {
-        unregister('CommandOrControl+Alt+C').catch(() => {});
-      } catch {}
+      cancelled = true;
+      unregister('CommandOrControl+Alt+C').catch(() => {});
     };
   }, [handleToggleForceClickThrough]);
 
-  // 7. Lắng nghe sự kiện từ System Tray / Menu Bar
+  // ── Tray events ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    let unlistenTrayClickThrough: (() => void) | undefined;
-    let unlistenTrayAlwaysOnTop: (() => void) | undefined;
+    const unlisteners: Array<() => void> = [];
 
-    listen('tray-toggle-click-through', () => {
-      handleToggleForceClickThrough();
-    }).then((fn) => {
-      unlistenTrayClickThrough = fn;
-    });
+    listen('tray-toggle-click-through', () => handleToggleForceClickThrough()).then((fn) =>
+      unlisteners.push(fn)
+    );
+    listen('tray-toggle-always-on-top', () => handleToggleAlwaysOnTop()).then((fn) =>
+      unlisteners.push(fn)
+    );
 
-    listen('tray-toggle-always-on-top', () => {
-      handleToggleAlwaysOnTop();
-    }).then((fn) => {
-      unlistenTrayAlwaysOnTop = fn;
-    });
-
-    return () => {
-      if (unlistenTrayClickThrough) unlistenTrayClickThrough();
-      if (unlistenTrayAlwaysOnTop) unlistenTrayAlwaysOnTop();
-    };
+    return () => unlisteners.forEach((fn) => fn());
   }, [handleToggleForceClickThrough, handleToggleAlwaysOnTop]);
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div
+      className="app-root"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget && e.button === 0) {
-          handleStartDrag(e);
-        }
-      }}
-      style={{
-        position: 'relative',
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '24px',
-        padding: '24px',
-        background: 'radial-gradient(circle at 50% 30%, rgba(30, 41, 59, 0.4) 0%, transparent 70%)',
+        if (e.target === e.currentTarget) handleStartDrag(e);
       }}
     >
-      {/* Titlebar nhận chuột */}
-      <div className="interactive-hit-target" style={{ width: '100%', height: '36px' }}>
+      {/* Titlebar */}
+      <div className="app-titlebar-slot interactive-hit-target">
         <Titlebar />
       </div>
 
-      {/* Thông báo Toast khi thao tác */}
-      {toastMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '48px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(15, 23, 42, 0.95)',
-            color: '#38bdf8',
-            border: '1px solid rgba(56, 189, 248, 0.4)',
-            padding: '8px 20px',
-            borderRadius: '9999px',
-            fontSize: '12px',
-            fontWeight: 500,
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
-            zIndex: 10000,
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          {toastMessage}
-        </div>
-      )}
+      {/* Toast */}
+      {toastMessage && <div className="app-toast">{toastMessage}</div>}
 
-      {/* Ghost Trigger Button - Luôn hiển thị khi UI bị ẩn */}
+      {/* Ghost trigger — visible only when UI is hidden */}
       {isUiHidden && (
-        <div
-          className="interactive-hit-target"
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            zIndex: 'var(--z-toolbar)',
-          }}
-        >
+        <div className="app-ghost-trigger interactive-hit-target">
           <Tooltip content="Hiện lại giao diện điều khiển" position="left">
             <IconButton
               icon={<Eye size={18} />}
@@ -320,59 +210,41 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* Main Floating Controls Container */}
-      <div
-        className={`ui-transition-fade ${isUiHidden ? 'ui-hidden' : 'ui-visible'}`}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '16px',
-        }}
-      >
-        {/* Floating Pill Toolbar */}
+      {/* Controls column: toolbar + chatbox + status */}
+      <div className={`app-controls-column ui-transition-fade ${isUiHidden ? 'ui-hidden' : 'ui-visible'}`}>
+
+        {/* ── Floating Pill Toolbar ─────────────────────────────────────── */}
         <div
           className="glass-pill window-drag-region interactive-hit-target"
           onMouseDown={handleStartDrag}
           style={{ cursor: 'grab' }}
         >
-          {/* Drag Grip Handle */}
-          <div
-            className="drag-handle"
-            title="Kéo thả tự do để di chuyển ứng dụng trên màn hình"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 2px',
-              cursor: 'grab',
-              color: 'var(--text-muted)',
-              userSelect: 'none',
-            }}
-          >
+          {/* Drag grip */}
+          <div className="drag-handle" title="Kéo thả để di chuyển ứng dụng">
             <GripVertical size={16} />
           </div>
-          {/* 1. Mute nó (TTS / AI voice) */}
+
+          {/* Mute AI (TTS) */}
           <Tooltip content={isAiMuted ? 'Bật âm thanh AI' : 'Mute âm thanh AI'} position="top">
             <IconButton
               icon={isAiMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
               label={isAiMuted ? 'Unmute AI' : 'Mute AI'}
               activeState={isAiMuted ? 'muted' : 'default'}
-              onClick={() => setIsAiMuted((prev) => !prev)}
+              onClick={() => setIsAiMuted((p) => !p)}
             />
           </Tooltip>
 
-          {/* 2. Mute mình (Microphone) */}
+          {/* Mute Mic */}
           <Tooltip content={isMicMuted ? 'Bật microphone' : 'Mute microphone'} position="top">
             <IconButton
               icon={isMicMuted ? <MicOff size={17} /> : <Mic size={17} />}
               label={isMicMuted ? 'Unmute Mic' : 'Mute Mic'}
               activeState={isMicMuted ? 'muted' : 'default'}
-              onClick={() => setIsMicMuted((prev) => !prev)}
+              onClick={() => setIsMicMuted((p) => !p)}
             />
           </Tooltip>
 
-          {/* 3. Always on top */}
+          {/* Always on Top */}
           <Tooltip
             content={isAlwaysOnTop ? 'Bỏ ghim trên cùng' : 'Ghim cửa sổ trên cùng'}
             position="top"
@@ -385,14 +257,14 @@ export const App: React.FC = () => {
             />
           </Tooltip>
 
-          {/* 4. Smart Hit-Testing / Click-through toggle */}
+          {/* Smart Hit-Testing */}
           <Tooltip
             content={
               isForceClickThrough
-                ? `Đang Khóa xuyên 100% (Bấm ${shortcutLabel} để mở lại)`
+                ? `Đang khóa xuyên 100% (${shortcutLabel} để mở lại)`
                 : isSmartHitTest
-                  ? 'Smart Hit-Testing: BẬT (Tự click xuyên vùng trống)'
-                  : 'Bật Smart Hit-Testing (Tự click xuyên vùng trống)'
+                  ? 'Smart Hit-Testing: BẬT'
+                  : 'Bật Smart Hit-Testing'
             }
             position="top"
           >
@@ -404,18 +276,10 @@ export const App: React.FC = () => {
             />
           </Tooltip>
 
-          {/* Divider */}
-          <div
-            style={{
-              width: '1px',
-              height: '20px',
-              background: 'var(--glass-border-base)',
-              margin: '0 2px',
-            }}
-          />
+          <div className="toolbar-divider" />
 
-          {/* 5. Slider scale nhân vật */}
-          <Tooltip content="Thu phóng kích thước nhân vật Live2D" position="top">
+          {/* Character scale slider */}
+          <Tooltip content="Thu phóng kích thước nhân vật" position="top">
             <Slider
               value={characterScale}
               min={0.5}
@@ -427,27 +291,19 @@ export const App: React.FC = () => {
             />
           </Tooltip>
 
-          {/* Divider */}
-          <div
-            style={{
-              width: '1px',
-              height: '20px',
-              background: 'var(--glass-border-base)',
-              margin: '0 2px',
-            }}
-          />
+          <div className="toolbar-divider" />
 
-          {/* 6. Bật/Tắt Chatbox */}
+          {/* Open / close chatbox */}
           <Tooltip content={isChatOpen ? 'Đóng khung chat' : 'Mở khung chat'} position="top">
             <IconButton
               icon={<MessageSquare size={17} />}
               label="Chatbox"
               activeState={isChatOpen ? 'active' : 'default'}
-              onClick={() => setIsChatOpen((prev) => !prev)}
+              onClick={() => setIsChatOpen((p) => !p)}
             />
           </Tooltip>
 
-          {/* 7. Nút ẩn UI */}
+          {/* Hide UI */}
           <Tooltip content="Ẩn toàn bộ UI" position="top">
             <IconButton
               icon={<EyeOff size={17} />}
@@ -457,74 +313,44 @@ export const App: React.FC = () => {
           </Tooltip>
         </div>
 
-        {/* Floating Frameless Chatbox */}
+        {/* ── Floating Chatbox ──────────────────────────────────────────── */}
         {isChatOpen && (
           <ChatPanel
             messages={messages}
-            onSendMessage={handleSendMessage}
+            onSendMessage={sendMessage}
             onClearMessages={handleClearMessages}
             onClose={() => setIsChatOpen(false)}
             isThinking={isThinking}
           />
         )}
 
-        {/* Status Preview Card */}
+        {/* ── Status Indicator Pill ─────────────────────────────────────── */}
         <div
-          className="glass-surface interactive-hit-target"
+          className="glass-surface status-pill interactive-hit-target"
           onMouseDown={handleStartDrag}
           title="Nhấp và giữ để di chuyển ứng dụng"
-          style={{
-            padding: '12px 18px',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            cursor: 'grab',
-            userSelect: 'none',
-          }}
         >
-          <span>
-            AI Sound:{' '}
-            <strong style={{ color: isAiMuted ? 'var(--accent-rose)' : 'var(--accent-cyan)' }}>
-              {isAiMuted ? 'MUTED' : 'ACTIVE'}
-            </strong>
-          </span>
-          <span>•</span>
-          <span>
-            Mic:{' '}
-            <strong style={{ color: isMicMuted ? 'var(--accent-rose)' : 'var(--accent-emerald)' }}>
-              {isMicMuted ? 'MUTED' : 'LISTENING'}
-            </strong>
-          </span>
-          <span>•</span>
-          <span>
-            Pin:{' '}
-            <strong
-              style={{ color: isAlwaysOnTop ? 'var(--accent-emerald)' : 'var(--text-muted)' }}
-            >
-              {isAlwaysOnTop ? 'PINNED' : 'NORMAL'}
-            </strong>
-          </span>
-          <span>•</span>
-          <span>
-            Click-thru:{' '}
-            <strong
-              style={{
-                color: isForceClickThrough
-                  ? 'var(--accent-rose)'
-                  : isSmartHitTest
-                    ? 'var(--accent-cyan)'
-                    : 'var(--text-muted)',
-              }}
-            >
-              {isForceClickThrough ? 'FORCE 100%' : isSmartHitTest ? 'SMART (AUTO)' : 'OFF'}
-            </strong>
-          </span>
-          <span>•</span>
-          <span>
-            Scale: <strong style={{ color: 'var(--text-primary)' }}>{Math.round(characterScale * 100)}%</strong>
-          </span>
+          {/* AI Sound */}
+          <span
+            className="status-pill-dot"
+            style={{ background: isAiMuted ? 'var(--accent-rose)' : 'var(--accent-cyan)' }}
+          />
+          <span>{isAiMuted ? 'Muted' : 'Voice'}</span>
+
+          <span className="status-pill-sep">•</span>
+
+          {/* Mic */}
+          <span
+            className="status-pill-dot"
+            style={{ background: isMicMuted ? 'var(--accent-rose)' : 'var(--accent-emerald)' }}
+          />
+          <span>{isMicMuted ? 'Mic Off' : 'Mic'}</span>
+
+          <span className="status-pill-sep">•</span>
+          <span>{isAlwaysOnTop ? 'Pinned' : 'Normal'}</span>
+
+          <span className="status-pill-sep">•</span>
+          <span>{Math.round(characterScale * 100)}%</span>
         </div>
       </div>
     </div>
